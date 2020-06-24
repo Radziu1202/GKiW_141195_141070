@@ -1,0 +1,50 @@
+#version 330
+
+//Zmienne jednorodne
+uniform mat4 P;
+uniform mat4 V;
+uniform mat4 M;
+uniform vec3 cam;
+
+
+//Atrybuty
+in vec3 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
+in vec2 texCoord;
+in vec3 normal; //wektor normalny w wierzcholku w przestrzeni modelu
+
+//Zmienne interpolowane
+out vec4 l1; //wektor do swiatla w przestrzeni świata
+out vec4 l2;
+out vec4 l3;
+out vec4 n; //wektor normalny w przestrzeni swiata
+out vec4 v; //wektor do obserwatora w przestrzeni swiata
+out float dist1;
+out float dist2;
+out float dist3;
+out vec2 iTexCoord0; //wspolrzedne teksturowania
+
+void main(void) {
+	vec4 vert = vec4(vertex.xyz, 1.0);
+	vec4 norm = vec4(normal.xyz, 0.0);
+	vec4 lp1=vec4(10.1795, 5.16205, -8.58879, 1.0); //Wspolrzedne swiatla w przestrzeni swiata
+	vec4 lp2=vec4(10.1795, 5.16205, -0.53665, 1.0);
+	vec4 lp3=vec4(0.282476, 15.9794, -0.026864, 1.0);
+	
+	vec4 temp1 = lp1-M*vert;
+	l1=normalize(temp1); //Wektor do swiatla w przestrzeni świata
+	dist1 = pow(length(temp1)+1, 1.3)+5.0;
+
+	vec4 temp2 = lp2-M*vert;
+	l2=normalize(temp2);
+	dist2 = pow(length(temp2)+1, 1.3)+5.0;
+
+	vec4 temp3= lp3-M*vert;
+	l3=normalize(temp3); //Wektor do swiatla w przestrzeni świata
+	dist3 = pow(length(temp3)+1, 1.3)+5.0;
+
+	n=normalize(M*norm); //Wektor normalny w wierzcholku w przestrzeni świata
+	v=normalize(vec4(cam.xyz, 1.0)-M*vert); //Wektor do obserwatora w przestrzeni świata
+	
+	iTexCoord0=texCoord; //Zapewnij interpolacje wspolrzednych teksturowania
+	gl_Position=P*V*M*vert;
+}

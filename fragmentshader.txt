@@ -1,0 +1,55 @@
+#version 330
+
+out vec4 pixelColor;
+in vec4 l1; //Wektor do swiatla w przestrzeni oka
+in vec4 l2;
+in vec4 l3;
+in vec4 n; //Wektor normalny w przestrzeni oka
+in vec4 v; //Wektor do obserwatora w przestrzeni oka
+in float dist1;
+in float dist2;
+in float dist3;
+in vec2 iTexCoord0;
+
+//Zmienne reprezentujace jednostki teksturujace
+uniform sampler2D textura;
+uniform float Ns;
+uniform vec3 Ks;
+uniform vec3 Ka;
+uniform float D;
+
+void main(void) {
+	vec4 texColor=texture(textura,iTexCoord0);
+
+    vec4 ka=vec4(Ka, D); //Kolor obiektu w swietle otoczenia
+    vec4 kd=vec4(texColor.xyz, D); //Kolor obiektu w swietle rozproszonym
+    vec4 ks=vec4(Ks, D); //Kolor obiektu w swietle odbitym
+
+    vec4 la=vec4(0.05,0.05,0.05,1.0); //Kolor swiatla otoczenia
+    vec4 ld=vec4(1.0, 241.0/255, 224.0/255, 1.0); //Kolor swiatla rozpraszanego
+    vec4 ls=vec4(1.0,1.0,1.0,0.0); //Kolor swiatla odbijanego
+
+    vec4 ml1=normalize(l1);
+	vec4 ml2=normalize(l2);
+	vec4 ml3=normalize(l3);
+    vec4 mn=normalize(n);
+    vec4 mv=normalize(v);
+    vec4 mr1=reflect(-ml1,mn);
+	vec4 mr2=reflect(-ml2,mn);
+	vec4 mr3=reflect(-ml1,mn);
+
+    float nl1=max(dot(mn,ml1),0.0); //Kosinus kata pomiedzy wektorami do swiatla i normalnym
+	float nl2=max(dot(mn,ml2),0.0);
+	float nl3=max(dot(mn,ml3),0.0);
+    float rv1=pow(max(dot(mr1,mv),0.0), Ns);
+	float rv2=pow(max(dot(mr2,mv),0.0), Ns);
+	float rv3=pow(max(dot(mr3,mv),0.0), Ns);
+
+	float lightPower = 19.0;
+
+	pixelColor=ka*la+															//ambient
+		vec4((lightPower*kd*ld*(vec4(nl1,nl1,nl1,1.0)/dist1 +					//diffuse
+			vec4(nl2,nl2,nl2,1.0)/dist2 + 
+			vec4(nl3,nl3,nl3,1.0)/dist3)).xyz,D) +
+		vec4((lightPower*ks*ls*(rv1/dist1 + rv2/dist2 + rv3/dist3)).xyz,D); 	//specular
+}
